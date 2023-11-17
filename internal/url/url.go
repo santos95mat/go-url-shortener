@@ -6,6 +6,7 @@ type Url struct {
 	ID        string    `json:"id"`
 	CreatedAt time.Time `json:"created_at"`
 	Original  string    `json:"original"`
+	Click     int       `json:"click"`
 }
 
 type CreateUrl struct {
@@ -19,4 +20,8 @@ type UrlRepository interface {
 	Save(url Url) error
 }
 
-type Headers map[string]string
+type UrlUsecase interface {
+	SearchOrCreateNewUrl(originalUrl string) (u *Url, new bool, err error)
+	Find(id string) (*Url, bool)
+	Status(id string) (*Url, bool)
+}

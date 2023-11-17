@@ -5,15 +5,15 @@ import (
 	"time"
 )
 
-type UrlUsecase struct {
+type urlUsecase struct {
 	urlRepository UrlRepository
 }
 
-func NewUrlUsecase(repo UrlRepository) *UrlUsecase {
-	return &UrlUsecase{urlRepository: repo}
+func NewUrlUsecase(repo UrlRepository) *urlUsecase {
+	return &urlUsecase{urlRepository: repo}
 }
 
-func (r *UrlUsecase) SearchOrCreateNewUrl(originalUrl string) (u *Url, new bool, err error) {
+func (r *urlUsecase) SearchOrCreateNewUrl(originalUrl string) (u *Url, new bool, err error) {
 
 	if u = r.urlRepository.FindByUrl(originalUrl); u != nil {
 		return u, false, nil
@@ -21,19 +21,32 @@ func (r *UrlUsecase) SearchOrCreateNewUrl(originalUrl string) (u *Url, new bool,
 
 	id := r.generateID()
 
-	url := Url{id, time.Now(), originalUrl}
+	url := Url{id, time.Now(), originalUrl, 0}
 	r.urlRepository.Save(url)
 
 	return &url, true, nil
 }
 
-func (r *UrlUsecase) Find(id string) (*Url, bool) {
-	url, b := r.urlRepository.FindByID(id)
+func (r *urlUsecase) Find(id string) (*Url, bool) {
+	url, exist := r.urlRepository.FindByID(id)
 
-	return url, b
+	if !exist {
+		return url, exist
+	}
+
+	url.Click++
+	r.urlRepository.Save(*url)
+
+	return url, exist
 }
 
-func (r *UrlUsecase) generateID() string {
+func (r *urlUsecase) Status(id string) (*Url, bool) {
+	url, exist := r.urlRepository.FindByID(id)
+
+	return url, exist
+}
+
+func (r *urlUsecase) generateID() string {
 	const (
 		length  = 5
 		simbols = "abcdefghijklmnopqrdtuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"

@@ -10,15 +10,15 @@ var (
 	baseUrl = "http://localhost:8888"
 )
 
-type UrlHandler struct {
-	urlUsecase *UrlUsecase
+type urlHandler struct {
+	urlUsecase UrlUsecase
 }
 
-func NewUrlHandler(urlUsecase *UrlUsecase) *UrlHandler {
-	return &UrlHandler{urlUsecase: urlUsecase}
+func NewUrlHandler(urlUsecase UrlUsecase) *urlHandler {
+	return &urlHandler{urlUsecase: urlUsecase}
 }
 
-func (u *UrlHandler) Shortener(c *fiber.Ctx) error {
+func (u *urlHandler) Shortener(c *fiber.Ctx) error {
 	var input CreateUrl
 
 	err := c.BodyParser(&input)
@@ -48,12 +48,26 @@ func (u *UrlHandler) Shortener(c *fiber.Ctx) error {
 	})
 }
 
-func (u *UrlHandler) Redirect(c *fiber.Ctx) error {
+func (u *urlHandler) Redirect(c *fiber.Ctx) error {
 	id := c.Params("id")
-	url, b := u.urlUsecase.Find(id)
+	url, exist := u.urlUsecase.Find(id)
 
-	if b {
+	if exist {
 		return c.Redirect(url.Original, fiber.StatusMovedPermanently)
+	}
+
+	return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+		"message": "Not Found",
+		"Url":     url,
+	})
+}
+
+func (u *urlHandler) Status(c *fiber.Ctx) error {
+	id := c.Params("id")
+	url, exist := u.urlUsecase.Status(id)
+
+	if exist {
+		return c.Status(fiber.StatusFound).JSON(url)
 	}
 
 	return c.Status(fiber.StatusNotFound).JSON(fiber.Map{

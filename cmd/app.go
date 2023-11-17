@@ -26,6 +26,7 @@ func main() {
 
 	app.Post("/api/shorten", url_handler.Shortener)
 	app.Get("/r/:id", url_handler.Redirect)
+	app.Get("/r/status/:id", url_handler.Status)
 
 	err := app.Listen(":" + os.Getenv("PORT"))
 
